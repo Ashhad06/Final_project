@@ -37,7 +37,7 @@ def Customer():
                     customer_window = Toplevel(root)
                     customer_window.title("New Window")
                     customer_window.minsize(width=300,height=180)
-                    dropdown = Combobox(customer_window, values=["kfc", "bovichic", "burger hut", "broadway"],font="verdana 15",width=15)
+                    dropdown = Combobox(customer_window, values=["kfc", "bovichic",  "broadway"],font="verdana 15",width=15)
                     dropdown.place(x=35, y=37)
                     dropdown.set("Select a restaurant")
                     customer_login_window.destroy()
@@ -58,35 +58,33 @@ def Customer():
                         cursor = con.cursor()
 
                         def populate_dropdown():
-                            # Connect to the SQLite database
+                            
                             conn = mysql.connect(host="localhost", user="root", database="online_order")
                             cursor = conn.cursor()
 
-                            # Retrieve data from the table
+                            
                             cursor.execute('SELECT Name FROM kfc')
                             data = cursor.fetchall()
 
-                            # Close the database connection
+                            
                             conn.close()
 
-                            # Clear existing options
+                           
                             dropdown['values'] = ()
 
-                            # Populate dropdown with retrieved data
+                            
                             dropdown['values'] = [row[0] for row in data]
 
-                        # Create a label
+                        
                         label = Label(kfc_window, text="Select an option:",font="Verdana 15")
                         label.place(x=157,y=75)
 
-                        # Create a dropdown menu
+                        
                         dropdown = Combobox(kfc_window)
-                        populate_dropdown()  # Populate the dropdown initially
+                        populate_dropdown()  
                         dropdown.place(x=130,y=100)
 
-                        # Refresh button to update the dropdown
-                        # refresh_button = Button(kfc_window, text="Refresh", command=populate_dropdown)
-                        # refresh_button.pack(pady=10)
+                       
                         def Add():
                             global Total
                             con = mysql.connect(host="localhost", user="root", database="online_order")
@@ -112,13 +110,15 @@ def Customer():
                             con.close()
                             kfc_window.withdraw()
                         add_button = Button(kfc_window, text="Add", command=Add).place(x=90, y=130)
-                        checkout_window = Button(kfc_window, bg="white", font=("CeraCondensedPro-Bold", 15), text="Checkout", command=Checkout).pack()
+                        checkout_window = Button(order_window, bg="white", font=("CeraCondensedPro-Bold", 15), text="Checkout", command=Checkout).pack()
                         con.close()
 
                     def bovichic():
                         order_window = Toplevel(customer_window)
                         order_window.title("Cart")
                         order_window.minsize(width=500, height=300)
+                        Label(order_window, text="Items in cart :", font=("A", 15)).pack()
+                        Label(order_window, text="Your Total is: ", font=("Product Sans Bold", 15)).place(x=10, y=5)
                         bovichic_window = Toplevel(customer_window,bg="darkgoldenrod1")
                         bovichic_window.minsize(width=500, height=300)
                         bovichic_window.maxsize(width=500, height=300)
@@ -142,64 +142,40 @@ def Customer():
 
                         def Add():
                             global Total
-                            Label(order_window, text=dropdown.get()).pack()
+                            
                             con = mysql.connect(host="localhost", user="root", database="online_order")
                             cursor = con.cursor()
                             cursor.execute("select * from bovichic where Name='" + dropdown.get() + "'")
                             price = cursor.fetchall()
                             for i in price:
-                                Label(order_window, text=i[1]).pack()
+                                abc = str(i[0])+" : "+str(i[1])
+                                Label(order_window, text=abc, font=("Product Sans Bold", 15)).pack()
                                 Total += int(i[1])
-                            Label(order_window, text=Total, width=20).place(x=1, y=1)
-
-                        add_button = Button(bovichic_window, text="Add", command=Add).place(x=90, y=130)
-                        con.close()
-
-                    def burger_hut():
-                        order_window = Toplevel(customer_window)
-                        order_window.title("Cart")
-                        order_window.minsize(width=500, height=300)
-                        burger_hut_window = Toplevel(customer_window,bg="white")
-                        burger_hut_window.minsize(width=500, height=300)
-                        burger_hut_window.maxsize(width=500, height=300)
-                        Label(burger_hut_window, text="Welcome to Burger Hut", font=("Verdana 15", 30),fg="lime").place(x=30, y=1)
-                        con = mysql.connect(host="localhost", user="root", database="online_order")
-                        cursor = con.cursor()
-
-                        def populate_dropdown():
-                            conn = mysql.connect(host="localhost", user="root", database="online_order")
-                            cursor = conn.cursor()
-                            cursor.execute('SELECT Name FROM burget_hut')
-                            data = cursor.fetchall()
-                            conn.close()
-                            dropdown['values'] = ()
-                            dropdown['values'] = [row[0] for row in data]
-
-                        label = Label(burger_hut_window, text="Select an option:")
-                        label.place(x=20,y=50)
-                        dropdown = Combobox(burger_hut_window)
-                        dropdown.pack()
-                        populate_dropdown()
-
-                        def Add():
+                            Label(order_window, text=Total, width=5, font=("Neutral Face", 30, "bold")).place(x=1, y=30)
+                            return Total
+                        def Checkout():
                             global Total
-                            Label(order_window, text=dropdown.get()).pack()
+                            Total = str(Total)
+                            Restaurant = "bovichic"
                             con = mysql.connect(host="localhost", user="root", database="online_order")
                             cursor = con.cursor()
-                            cursor.execute("select * from burget_hut where Name='" + dropdown.get() + "'")
-                            price = cursor.fetchall()
-                            for i in price:
-                                Label(order_window, text=i[1]).pack()
-                                Total += int(i[1])
-                            Label(order_window, text=Total, width=20).place(x=1, y=1)
-
-                        add_button = Button(burger_hut_window, text="Add", command=Add).place(x=50, y=50)
+                            cursor.execute("insert into orders values('" + username + "','" + Restaurant + "', '" + Total + "')")
+                            cursor.execute("commit")
+                            Messagebox.showinfo("Status","Your order has been placed")
+                            order_window.withdraw()
+                            con.close()
+                            bovichic_window.withdraw()
+                        add_button = Button(bovichic_window, text="Add", command=Add).place(x=90, y=130)
+                        checkout_window = Button(order_window, bg="white", font=("CeraCondensedPro-Bold", 15), text="Checkout", command=Checkout).pack()
                         con.close()
 
                     def broadway():
                         order_window = Toplevel(customer_window)
                         order_window.title("Cart")
                         order_window.minsize(width=500, height=300)
+                        order_window.maxsize(width=500, height=300)
+                        Label(order_window, text="Items in cart :", font=("A", 15)).pack()
+                        Label(order_window, text="Your Total is: ", font=("Product Sans Bold", 15)).place(x=10, y=5)
                         broadway_window = Toplevel(customer_window)
                         broadway_window.minsize(width=500, height=300)
                         broadway_window.maxsize(width=500, height=300)
@@ -210,31 +186,46 @@ def Customer():
                         def populate_dropdown():
                             conn = mysql.connect(host="localhost", user="root", database="online_order")
                             cursor = conn.cursor()
-                            cursor.execute('SELECT Name FROM kfc')
+                            cursor.execute('SELECT Name FROM broadway')
                             data = cursor.fetchall()
                             conn.close()
                             dropdown['values'] = ()
                             dropdown['values'] = [row[0] for row in data]
 
                         label = Label(broadway_window, text="Select an option:")
-                        label.pack(pady=10)
+                        label.place(x=157,y=75)
                         dropdown = Combobox(broadway_window)
                         populate_dropdown()
-                        dropdown.pack()
+                        dropdown.place(x=130,y=100)
 
                         def Add():
                             global Total
-                            Label(order_window, text=dropdown.get()).pack()
+                            
                             con = mysql.connect(host="localhost", user="root", database="online_order")
                             cursor = con.cursor()
-                            cursor.execute("select * from kfc where Name='" + dropdown.get() + "'")
+                            cursor.execute("select * from broadway where Name='" + dropdown.get() + "'")
                             price = cursor.fetchall()
                             for i in price:
-                                Label(order_window, text=i[1]).pack()
+                                abc = str(i[0])+" : "+str(i[1])
+                                Label(order_window, text=abc, font=("Product Sans Bold", 15)).pack()
                                 Total += int(i[1])
-                            Label(order_window, text=Total, width=20).place(x=1, y=1)
+                            Label(order_window, text=Total, width=5, font=("Neutral Face", 30, "bold")).place(x=1, y=30)
+                            return Total
+                        def Checkout():
+                            global Total
+                            Total = str(Total)
+                            Restaurant = "broadway"
+                            con = mysql.connect(host="localhost", user="root", database="online_order")
+                            cursor = con.cursor()
+                            cursor.execute("insert into orders values('" + username + "','" + Restaurant + "', '" + Total + "')")
+                            cursor.execute("commit")
+                            Messagebox.showinfo("Status","Your order has been placed")
+                            order_window.withdraw()
+                            con.close()
+                            broadway_window.withdraw()
 
                         add_button = Button(broadway_window, text="Add", command=Add).place(x=50, y=50)
+                        checkout_window = Button(order_window, bg="white", font=("CeraCondensedPro-Bold", 15), text="Checkout", command=Checkout).pack()
                         con.close()
 
 
@@ -243,8 +234,6 @@ def Customer():
                             kfc()
                         elif dropdown.get() == "bovichic":
                             bovichic()
-                        elif dropdown.get() == "burger hut":
-                            burger_hut()
                         elif dropdown.get() == "broadway":
                             broadway()
 
